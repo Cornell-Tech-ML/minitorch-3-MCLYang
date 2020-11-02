@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "Style",
+      "setup": "sudo -H pip3 install -q setuptools; sudo -H pip3 install -qr requirements.txt",
+      "run": "flake8 --ignore \"N801, E203, E266, E501, W503, F812, E741, N803, N802, N806\" minitorch/ tests/ project/",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test 3.1",
+      "setup": "sudo -H pip3 install -q setuptools; sudo -H pip3 install -qr requirements.txt",
+      "run": "python3 -m pytest -m task3_1",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test 3.2",
+      "setup": "sudo -H pip3 install -q setuptools; sudo -H pip3 install -qr requirements.txt",
+      "run": "python3 -m pytest -m task3_2",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test 3.3",
+      "setup": "sudo -H pip3 install -q setuptools; sudo -H pip3 install -qr requirements.txt",
+      "run": "python3 -m pytest -m task3_3",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    },
+    {
+      "name": "Test 3.4",
+      "setup": "sudo -H pip3 install -q setuptools; sudo -H pip3 install -qr requirements.txt",
+      "run": "python3 -m pytest -m task3_4",
+      "input": "",
+      "output": "",
+      "comparison": "included",
+      "timeout": 10,
+      "points": 10
+    }
+  ]
+}
