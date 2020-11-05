@@ -4,7 +4,7 @@ from hypothesis import given
 import numba
 from hypothesis.strategies import floats, integers, lists, data, permutations
 from .strategies import tensors, shaped_tensors, assert_close
-
+from minitorch.tensor_data import shape_broadcast
 
 small_floats = floats(min_value=-100, max_value=100, allow_nan=False)
 v = 4.524423
@@ -131,6 +131,7 @@ def test_permute(backend, data):
     def permute(a):
         return a.permute(*permutation)
 
+
     minitorch.grad_check(permute, t1)
 
 
@@ -141,10 +142,14 @@ def test_mm2():
     c = a @ b
 
     c2 = (a.view(2, 3, 1) * b.view(1, 3, 4)).sum(1).view(2, 4)
+    # print("a",a.shape)
+    # print("b",b.shape)
+    # print("boardcasting shape: ",shape_broadcast(a.shape[:-2], b.shape[:-2]))
+    # print("c2",c2.shape)
+    # assert_close(0,1)
 
     for ind in c._tensor.indices():
         assert_close(c[ind], c2[ind])
-
 
 # Matrix Multiplication
 @given(data())
@@ -166,5 +171,10 @@ def test_mm(backend, data):
         .sum(2)
         .view(D, A, C)
     )
+    print("a",a.shape)
+    print("b",b.shape)
+    print("c2",c2)
+    print("c",c)
+
     for ind in c._tensor.indices():
         assert_close(c[ind], c2[ind])

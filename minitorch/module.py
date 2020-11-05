@@ -22,11 +22,33 @@ class Module:
 
     def train(self):
         "Set the mode of this module and all descendent modules to `train`."
-        raise NotImplementedError('Need to include this file from past assignment.')
+        self.mode = "train"
+        if len(self._modules) != 0:
+            for key in self._modules:
+                self._modules[key].train()
+
+            # if(self._modules[key]    )
+
+        # self.__dict__["_modules"].values().mode = "train"
+
+        # for m in self._modules:
+        #     m.mode = "train"
+
+        # TODO: Implement for Task 0.4.
+        # raise NotImplementedError("Need to implement for Task 0.4")
 
     def eval(self):
         "Set the mode of this module and all descendent modules to `eval`."
-        raise NotImplementedError('Need to include this file from past assignment.')
+        # TODO: Implement for Task 0.4.
+        self.mode = "eval"
+        if len(self._modules) != 0:
+            for key in self._modules:
+                self._modules[key].eval()
+        # self.__dict__["_modules"].values().mode = "eval"
+
+        # for m in self._modules:
+        #     m.mode = "eval"
+        # raise NotImplementedError("Need to implement for Task 0.4")
 
     def named_parameters(self):
         """
@@ -36,7 +58,47 @@ class Module:
         Returns:
             dict: Each name (key) and :class:`Parameter` (value) under this module.
         """
-        raise NotImplementedError('Need to include this file from past assignment.')
+        if len(self._modules) == 0:
+            new_dict = {}
+            for p in self._parameters:
+                new_dict[p] = self._parameters[p]
+            return new_dict
+        else:
+            this_para = {}
+            for key in self._parameters:
+                this_para[key] = self._parameters[key]
+            for key in self._modules:
+                child_para = self._modules[key].named_parameters()
+                for name in child_para:
+                    this_para[key + "." + name] = child_para[name]
+            return this_para
+
+        # if(len(self._modules) == 0):
+        #     new_dict = {}
+        #     for p in self._parameters:
+        #         new_dict[p] = self._parameters[p]
+        #     return(new_dict)
+        # else:
+        #     this_para = {}
+        #     for key in self._parameters:
+        #         this_para[key] = self._parameters[key]
+
+        #     for key in self._modules:
+        #         child_para = self._modules[key].named_parameters()
+        #         for p in self._parameters:
+        #             child_para[p] = self._parameters[p]
+        #     return child_para
+        # if(len(self._modules) != 0):
+        #         new_dict = self._modules[key].named_parameters()
+        #         for p in self._parameters:
+        #             new_dict[p] = self._parameters[p]
+        # else:
+        #     new_dict = {}
+
+        # return(new_dict)
+
+        # TODO: Implement for Task 0.4.
+        # raise NotImplementedError("Need to implement for Task 0.4")
 
     def parameters(self):
         return self.named_parameters().values()
