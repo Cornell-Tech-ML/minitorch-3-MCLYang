@@ -41,13 +41,12 @@ def tensor_map(fn):
     """
 
     def _map(out, out_shape, out_strides, out_size, in_storage, in_shape, in_strides):
-        # for i in prange(len(out)):
             i = cuda.blockIdx.x *  cuda.blockDim.x  + cuda.threadIdx.x
             if i < len(out):
                 out_index =cuda.local.array(MAX_DIMS,numba.int16)
                 in_index = cuda.local.array(MAX_DIMS,numba.int16)
                 count(i,out_shape,out_index)
-                # broadcast_index(out_index,out_shape,in_shape,in_index)
+                broadcast_index(out_index,out_shape,in_shape,in_index)
                 o = index_to_position(out_index,out_strides)
                 j = index_to_position(in_index,in_strides)
                 out[o] = fn(in_storage[j])
@@ -114,7 +113,20 @@ def tensor_zip(fn):
         b_strides,
     ):
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        # raise NotImplementedError('Need to implement for Task 3.3')
+
+        i = cuda.blockIdx.x *  cuda.blockDim.x  + cuda.threadIdx.x
+        if i < len(out):
+            out_index = cuda.local.array(MAX_DIMS,numba.int16)
+            a_index = cuda.local.array(MAX_DIMS,numba.int16)
+            b_index = cuda.local.array(MAX_DIMS,numba.int16)
+            count(i,out_shape,out_index)
+            o = index_to_position(out_index,out_strides)
+            broadcast_index(out_index,out_shape,a_shape,a_index)
+            j = index_to_position(a_index,a_strides)
+            broadcast_index(out_index,out_shape,b_shape,b_index)
+            k = index_to_position(b_index,b_strides)
+            out[o] = fn(a_storage[j],b_storage[k])
 
     return cuda.jit()(_zip)
 
@@ -167,7 +179,23 @@ def tensor_reduce(fn):
         reduce_size,
     ):
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        # raise NotImplementedError('Need to implement for Task 3.3')
+
+        i = cuda.blockIdx.x *  cuda.blockDim.x  + cuda.threadIdx.x
+        if i < len(out):
+            out_index = cuda.local.array(MAX_DIMS,numba.int16)
+            count(i,out_shape,out_index)
+            o = index_to_position(out_index,out_strides)
+            for s in range(reduce_size):
+                a_index = cuda.local.array(MAX_DIMS,numba.int16)
+                count(s,reduce_shape,a_index)
+                for n in range(len(reduce_shape)):
+                    if reduce_shape[n]!=1:
+                        out_index[n] = a_index[n] 
+
+                j = index_to_position(out_index,a_strides)
+                out[o] = fn(out[o],a_storage[j])
+
 
     return cuda.jit()(_reduce)
 
@@ -251,6 +279,67 @@ def tensor_matrix_multiply(
     Returns:
         None : Fills in `out`
     """
+
+    iteration_n = a_shape[-1]
+
+    # for i in prange(len(out)):
+    i = cuda.blockIdx.x *  cuda.blockDim.x  + cuda.threadIdx.x
+    if i < len(out):
+
+        out_index = cuda.local.array(MAX_DIMS,numba.int16)
+        count(i,out_shape,out_index)
+        # print("out_index",out_index)
+
+        o = index_to_position(out_index,out_strides)   
+        temp_sum = 0
+        if len(out_shape) ==3:
+            d = out_index[0]
+            a_row = out_index[1]
+            b_col = out_index[2]
+            for w in range(iteration_n):
+                a_index = cuda.local.array(MAX_DIMS,numba.int16)
+                b_index = cuda.local.array(MAX_DIMS,numba.int16)
+                a_index[0] = d 
+                a_index[1] = a_row
+                a_index[2] = w
+
+                b_index[0] = 0
+                b_index[1] = w
+                b_index[2] = b_col
+                # a_index = [d,a_row,w]
+                # b_index = [0,w,b_col]
+
+                j = index_to_position(a_index,a_strides)
+                m = index_to_position(b_index,b_strides)
+        
+                temp_sum = temp_sum + a_storage[j]*b_storage[m]
+        else: 
+            a_row = out_index[0]
+            b_col = out_index[1]
+            for w in range(iteration_n):
+                a_index = cuda.local.array(MAX_DIMS,numba.int16)
+                b_index = cuda.local.array(MAX_DIMS,numba.int16) 
+                a_index[0] = a_row
+                a_index[1] = w
+
+                b_index[0] = w
+                b_index[1] = b_col
+
+
+                # a_index = [a_row,w]
+                # b_index = [w,b_col]
+
+                j = index_to_position(a_index,a_strides)
+                m = index_to_position(b_index,b_strides)
+        
+                temp_sum = temp_sum + a_storage[j]*b_storage[m]
+        
+
+        out[o] = temp_sum
+
+
+
+
 
     # TODO: Implement for Task 3.4.
     # raise NotImplementedError('Need to implement for Task 3.4')

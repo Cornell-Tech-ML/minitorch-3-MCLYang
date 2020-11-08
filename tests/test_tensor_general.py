@@ -4,7 +4,7 @@ from hypothesis import given
 import numba
 from hypothesis.strategies import floats, integers, lists, data, permutations
 from .strategies import tensors, shaped_tensors, assert_close
-
+from numba import cuda
 
 small_floats = floats(min_value=-100, max_value=100, allow_nan=False)
 v = 4.524423
@@ -41,7 +41,7 @@ matmul_tests = [pytest.param(FastTensorBackend, marks=pytest.mark.task3_2)]
 backend_tests = [pytest.param(FastTensorBackend, marks=pytest.mark.task3_1)]
 
 
-if numba.cuda.is_available():
+if cuda.is_available():
     CudaTensorBackend = minitorch.make_tensor_backend(minitorch.CudaOps, is_cuda=True)
     matmul_tests.append(pytest.param(CudaTensorBackend, marks=pytest.mark.task3_4))
     backend_tests.append(pytest.param(CudaTensorBackend, marks=pytest.mark.task3_3))
@@ -63,9 +63,9 @@ def test_one_args(fn, backend, data):
     "Run forward for all one arg functions above."
     t1 = data.draw(tensors(backend=backend))
     t2 = fn[1](t1)
+
     for ind in t2._tensor.indices():
         assert_close(t2[ind], fn[1](minitorch.Scalar(t1[ind])).data)
-
 
 @given(data())
 @pytest.mark.parametrize("fn", two_arg)

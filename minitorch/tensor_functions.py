@@ -277,32 +277,14 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
                 # TODO: Implement for Task 2.2.
                 # pdb.set_trace()
 
-                res_order = tuple()
-                for i, p in enumerate(order):
-                    res_order = res_order + (order.index(i),)
-
-                ctx.save_for_backward(res_order)
-
-                new_tensor_dt = a._tensor.permute(*order)
-                return Tensor.make(
-                    new_tensor_dt._storage,
-                    new_tensor_dt.shape,
-                    strides=new_tensor_dt.strides,
-                    backend=a.backend,
-                )
+                ctx.save_for_backward(order)
+                return a._new(a._tensor.permute(*order))
 
             @staticmethod
             def backward(ctx, grad_output):
-                res_order = ctx.saved_values
-
-                new_tensor_dt = grad_output._tensor.permute(*res_order)
-                return Tensor.make(
-                    new_tensor_dt._storage,
-                    new_tensor_dt.shape,
-                    strides=new_tensor_dt.strides,
-                    backend=grad_output.backend,
-                )
-
+                order = ctx.saved_values
+                order = [a[0] for a in sorted(enumerate(order),key=lambda a: a[1]) ]
+                return grad_output._new(grad_output._tensor.permute(*order))
                 # TODO: Implement for Task 2.3.
                 # return(1)
                 # raise NotImplementedError('Need to implement for Task 2.3')
@@ -339,9 +321,15 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
             @staticmethod
             def backward(ctx,grad_output):
                 t1,t2 = ctx.saved_values
+                new_order = list(range(len(t1.shape)))
+                temp = new_order[-1]
+                new_order[-1] = new_order[-2] 
+                new_order[-2] = temp
+
+
                 return(
-                tensor_ops.matrix_multiply(grad_output,t2.permute(0,2,1)),
-                tensor_ops.matrix_multiply(t1.permute(0,2,1),grad_output)
+                tensor_ops.matrix_multiply(grad_output,t2.permute(*new_order)),
+                tensor_ops.matrix_multiply(t1.permute(*new_order),grad_output)
                 )
                 
 
