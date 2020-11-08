@@ -41,8 +41,21 @@ def tensor_map(fn):
     """
 
     def _map(out, out_shape, out_strides, out_size, in_storage, in_shape, in_strides):
+        # for i in prange(len(out)):
+            i = cuda.blockIdx.x *  cuda.blockDim.x  + cuda.threadIdx.x
+            if i < len(out):
+                out_index =cuda.local.array(MAX_DIMS,numba.int16)
+                in_index = cuda.local.array(MAX_DIMS,numba.int16)
+                count(i,out_shape,out_index)
+                # broadcast_index(out_index,out_shape,in_shape,in_index)
+                o = index_to_position(out_index,out_strides)
+                j = index_to_position(in_index,in_strides)
+                out[o] = fn(in_storage[j])
+            
+
+
         # TODO: Implement for Task 3.3.
-        raise NotImplementedError('Need to implement for Task 3.3')
+        # raise NotImplementedError('Need to implement for Task 3.3')
 
     return cuda.jit()(_map)
 
@@ -240,7 +253,7 @@ def tensor_matrix_multiply(
     """
 
     # TODO: Implement for Task 3.4.
-    raise NotImplementedError('Need to implement for Task 3.4')
+    # raise NotImplementedError('Need to implement for Task 3.4')
 
 
 def matrix_multiply(a, b):
