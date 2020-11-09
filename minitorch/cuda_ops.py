@@ -17,7 +17,7 @@ import numpy as np
 count = cuda.jit(device=True)(count)
 index_to_position = cuda.jit(device=True)(index_to_position)
 broadcast_index = cuda.jit(device=True)(broadcast_index)
-
+MAX_DIMS = 10
 
 def tensor_map(fn):
     """
