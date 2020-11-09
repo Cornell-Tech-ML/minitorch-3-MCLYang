@@ -14,7 +14,6 @@ parser.add_argument("--PLOT", default=False, help="dataset")
 
 args = parser.parse_args()
 
-
 PTS = args.PTS
 
 if args.DATASET == "xor":
@@ -36,6 +35,7 @@ elif args.BACKEND == "old":
     # Module-2 backend
     # You can use this to debug, but you will need to add a
     # Matrix multiplication @ operator
+
     BACKEND = minitorch.TensorFunctions
 elif args.BACKEND == "gpu":
     BACKEND = minitorch.make_tensor_backend(minitorch.CudaOps)
@@ -52,7 +52,6 @@ def RParam(*shape):
 class Network(minitorch.Module):
     def __init__(self):
         super().__init__()
-
         # Submodules
         self.layer1 = Linear(2, HIDDEN)
         self.layer2 = Linear(HIDDEN, HIDDEN)
