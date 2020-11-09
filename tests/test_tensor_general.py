@@ -141,6 +141,8 @@ def test_mm2():
     c = a @ b
 
     c2 = (a.view(2, 3, 1) * b.view(1, 3, 4)).sum(1).view(2, 4)
+    print(c2)
+    print(c)
 
     for ind in c._tensor.indices():
         assert_close(c[ind], c2[ind])

@@ -340,59 +340,29 @@ def tensor_matrix_multiply(
     # print("a")
     # print(len(out_shape))
     
-
     iteration_n = a_shape[-1]
-
+     
     for i in prange(len(out)):
         out_index = np.zeros(MAX_DIMS,np.int32)
         count(i,out_shape,out_index)
-        # print("out_index",out_index)
-
         o = index_to_position(out_index,out_strides)   
+        a_index = np.copy(out_index)
+        b_index = np.zeros(MAX_DIMS,np.int32)
+        a_index[len(out_shape)-1] = 0
+        b_index[len(out_shape)-2] = 0
+        b_index[len(out_shape)-1] = out_index[len(out_shape)-1]
         temp_sum = 0
-        if len(out_shape) ==3:
-            d = out_index[0]
-            a_row = out_index[1]
-            b_col = out_index[2]
-            for w in range(iteration_n):
-                a_index = [d,a_row,w]
-                b_index = [0,w,b_col]
+        for w in range(iteration_n):
+            # a_index = [d,a_row,w]
+            # b_index = [0,w,b_col]
+            a_index[len(out_shape)-1] = w
+            b_index[len(out_shape)-2] = w
 
-                j = index_to_position(a_index,a_strides)
-                m = index_to_position(b_index,b_strides)
-        
-                temp_sum = temp_sum + a_storage[j]*b_storage[m]
-        else: 
-        # len(out_shape) ==2:
-            a_row = out_index[0]
-            b_col = out_index[1]
-            for w in range(iteration_n):
-                a_index = [a_row,w]
-                b_index = [w,b_col]
-
-                j = index_to_position(a_index,a_strides)
-                m = index_to_position(b_index,b_strides)
-        
-                temp_sum = temp_sum + a_storage[j]*b_storage[m]
-        
+            j = index_to_position(a_index,a_strides)
+            m = index_to_position(b_index,b_strides)
+            temp_sum = temp_sum + a_storage[j]*b_storage[m]
 
         out[o] = temp_sum
-
-
-
-
-    # for i in prange(len(out)):
-
-    #     count(i,out_shape,out_index)
-    #     o = index_to_position(out_index,out_strides)
-    #     broadcast_index(out_index,out_shape,a_shape,a_index)
-    #     j = index_to_position(a_index,a_strides)
-    #     broadcast_index(out_index,out_shape,b_shape,b_index)
-    #     k = index_to_position(b_index,b_strides)
-    #     out[o] = fn(a_storage[j],b_storage[k])
-
-    # # TODO: Implement for Task 3.2.
-    # raise NotImplementedError('Need to implement for Task 3.2')
 
 
 def matrix_multiply(a, b):

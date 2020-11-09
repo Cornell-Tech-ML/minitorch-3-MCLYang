@@ -285,58 +285,34 @@ def tensor_matrix_multiply(
     # for i in prange(len(out)):
     i = cuda.blockIdx.x *  cuda.blockDim.x  + cuda.threadIdx.x
     if i < len(out):
-
         out_index = cuda.local.array(MAX_DIMS,numba.int16)
+        cuda.local
+
         count(i,out_shape,out_index)
-        # print("out_index",out_index)
-
         o = index_to_position(out_index,out_strides)   
+
+        a_index = cuda.local.array(MAX_DIMS,numba.int16)
+        for u in range(MAX_DIMS):
+            a_index[u] = out_index[u]
+
+
+        b_index = cuda.local.array(MAX_DIMS,numba.int16)
+
+        a_index[len(out_shape)-1] = 0
+        b_index[len(out_shape)-2] = 0
+        b_index[len(out_shape)-1] = out_index[len(out_shape)-1]
         temp_sum = 0
-        if len(out_shape) ==3:
-            d = out_index[0]
-            a_row = out_index[1]
-            b_col = out_index[2]
-            for w in range(iteration_n):
-                a_index = cuda.local.array(MAX_DIMS,numba.int16)
-                b_index = cuda.local.array(MAX_DIMS,numba.int16)
-                a_index[0] = d 
-                a_index[1] = a_row
-                a_index[2] = w
+        for w in range(iteration_n):
+            # a_index = [d,a_row,w]
+            # b_index = [0,w,b_col]
+            a_index[len(out_shape)-1] = w
+            b_index[len(out_shape)-2] = w
 
-                b_index[0] = 0
-                b_index[1] = w
-                b_index[2] = b_col
-                # a_index = [d,a_row,w]
-                # b_index = [0,w,b_col]
-
-                j = index_to_position(a_index,a_strides)
-                m = index_to_position(b_index,b_strides)
-        
-                temp_sum = temp_sum + a_storage[j]*b_storage[m]
-        else: 
-            a_row = out_index[0]
-            b_col = out_index[1]
-            for w in range(iteration_n):
-                a_index = cuda.local.array(MAX_DIMS,numba.int16)
-                b_index = cuda.local.array(MAX_DIMS,numba.int16) 
-                a_index[0] = a_row
-                a_index[1] = w
-
-                b_index[0] = w
-                b_index[1] = b_col
-
-
-                # a_index = [a_row,w]
-                # b_index = [w,b_col]
-
-                j = index_to_position(a_index,a_strides)
-                m = index_to_position(b_index,b_strides)
-        
-                temp_sum = temp_sum + a_storage[j]*b_storage[m]
-        
+            j = index_to_position(a_index,a_strides)
+            m = index_to_position(b_index,b_strides)
+            temp_sum = temp_sum + a_storage[j]*b_storage[m]
 
         out[o] = temp_sum
-
 
 
 

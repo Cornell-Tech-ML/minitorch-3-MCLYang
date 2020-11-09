@@ -444,7 +444,7 @@ def grad_check(f, *vals):
     random.seed(10)
     out = f(*vals)
     # print('=================================================')
-    # print('vals',vals)
+    # print('vals',vals) 
     # print('out',out)
     print()
     # pdb.set_trace()

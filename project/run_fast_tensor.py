@@ -91,7 +91,7 @@ class Linear(minitorch.Module):
         #(N,10) + (1,10) ->(N,10)
         y = mul + bias
         return y
-
+        
         # TODO: Implement for Task 3.5.
         # raise NotImplementedError('Need to implement for Task 3.5')
 
