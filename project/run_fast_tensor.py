@@ -65,8 +65,6 @@ class Network(minitorch.Module):
         x = self.layer3(x)
         x = x.sigmoid()
         return x
-        
-
 
 
 class Linear(minitorch.Module):
@@ -79,7 +77,7 @@ class Linear(minitorch.Module):
     def forward(self, x):
         # x::(N,2)
         # weight::(2,10)
-        #(N,2)@(2,10) ->(N,10)
+        # (N,2)@(2,10) ->(N,10)
         weights = self.weights.value
         mul = x @ weights
 
@@ -87,10 +85,10 @@ class Linear(minitorch.Module):
         bias = self.bias.value
         bias = bias.view(1, bias.shape[0])
 
-        #(N,10) + (1,10) ->(N,10)
+        # (N,10) + (1,10) ->(N,10)
         y = mul + bias
         return y
-        
+
         # TODO: Implement for Task 3.5.
         # raise NotImplementedError('Need to implement for Task 3.5')
 

@@ -1,7 +1,8 @@
 import minitorch
 import pytest
 from hypothesis import given
-import numba
+
+# import numba
 from hypothesis.strategies import floats, integers, lists, data, permutations
 from .strategies import tensors, shaped_tensors, assert_close
 from numba import cuda
@@ -66,6 +67,7 @@ def test_one_args(fn, backend, data):
 
     for ind in t2._tensor.indices():
         assert_close(t2[ind], fn[1](minitorch.Scalar(t1[ind])).data)
+
 
 @given(data())
 @pytest.mark.parametrize("fn", two_arg)
@@ -141,8 +143,8 @@ def test_mm2():
     c = a @ b
 
     c2 = (a.view(2, 3, 1) * b.view(1, 3, 4)).sum(1).view(2, 4)
-    print(c2)
-    print(c)
+    # print(c2)
+    # print(c)
 
     for ind in c._tensor.indices():
         assert_close(c[ind], c2[ind])
@@ -168,5 +170,9 @@ def test_mm(backend, data):
         .sum(2)
         .view(D, A, C)
     )
+
+    print("c", c)
+    print("c2", c2)
+
     for ind in c._tensor.indices():
         assert_close(c[ind], c2[ind])

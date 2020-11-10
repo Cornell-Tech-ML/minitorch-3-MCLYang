@@ -283,7 +283,7 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
             @staticmethod
             def backward(ctx, grad_output):
                 order = ctx.saved_values
-                order = [a[0] for a in sorted(enumerate(order),key=lambda a: a[1]) ]
+                order = [a[0] for a in sorted(enumerate(order), key=lambda a: a[1])]
                 return grad_output._new(grad_output._tensor.permute(*order))
                 # TODO: Implement for Task 2.3.
                 # return(1)
@@ -314,24 +314,22 @@ def make_tensor_backend(tensor_ops, is_cuda=False):
 
         class MatMul(Function):
             @staticmethod
-            def forward(ctx,t1,t2):
-                ctx.save_for_backward(t1,t2)
-                return tensor_ops.matrix_multiply(t1,t2)
+            def forward(ctx, t1, t2):
+                ctx.save_for_backward(t1, t2)
+                return tensor_ops.matrix_multiply(t1, t2)
 
             @staticmethod
-            def backward(ctx,grad_output):
-                t1,t2 = ctx.saved_values
+            def backward(ctx, grad_output):
+                t1, t2 = ctx.saved_values
                 new_order = list(range(len(t1.shape)))
                 temp = new_order[-1]
-                new_order[-1] = new_order[-2] 
+                new_order[-1] = new_order[-2]
                 new_order[-2] = temp
 
-
-                return(
-                tensor_ops.matrix_multiply(grad_output,t2.permute(*new_order)),
-                tensor_ops.matrix_multiply(t1.permute(*new_order),grad_output)
+                return (
+                    tensor_ops.matrix_multiply(grad_output, t2.permute(*new_order)),
+                    tensor_ops.matrix_multiply(t1.permute(*new_order), grad_output),
                 )
-                
 
     return Backend
 
@@ -444,7 +442,7 @@ def grad_check(f, *vals):
     random.seed(10)
     out = f(*vals)
     # print('=================================================')
-    # print('vals',vals) 
+    # print('vals',vals)
     # print('out',out)
     print()
     # pdb.set_trace()

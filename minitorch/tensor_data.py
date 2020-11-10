@@ -25,10 +25,10 @@ def index_to_position(index, strides):
     Returns:
         int : position in storage
     """
-    
+
     position = 0
-    for ind,strides in zip(index, strides):
-        position += ind*strides
+    for ind, strides in zip(index, strides):
+        position += ind * strides
     return position
 
     # for i in range(len(index)):
@@ -61,8 +61,8 @@ def count(position, shape, out_index):
 
     """
     # print('position == 0',position == 0)
-    cur_pos = position+0
-    for i in range(len(shape)-1,-1,-1):
+    cur_pos = position + 0
+    for i in range(len(shape) - 1, -1, -1):
         sh = shape[i]
         out_index[i] = int(cur_pos % sh)
         cur_pos = cur_pos // sh
@@ -119,7 +119,6 @@ def broadcast_index(big_index, big_shape, shape, out_index):
     # else:
     #     compare_notes = False
 
-    
     # if compare_notes:
     #     for i,s in enumerate(shape):
     #         if s>1:
@@ -134,13 +133,13 @@ def broadcast_index(big_index, big_shape, shape, out_index):
     #             out_index[i] = 0
     # return None
 
-    
-    for i,s in enumerate(shape):
-        if s>1:
-            out_index[i] = big_index[i+(len(big_shape)- len(shape))]
+    for i, s in enumerate(shape):
+        if s > 1:
+            out_index[i] = big_index[i + (len(big_shape) - len(shape))]
         else:
             out_index[i] = 0
     return None
+
 
 def shape_broadcast(shape1, shape2):
     """
@@ -156,8 +155,8 @@ def shape_broadcast(shape1, shape2):
     Raises:
         IndexingError : if cannot broadcast
     """
-    a,b = shape1,shape2
-    m = max(len(a),len(b))
+    a, b = shape1, shape2
+    m = max(len(a), len(b))
     # print("m",m)
     c_rev = [0] * m
     a_rev = list(reversed(a))
@@ -165,17 +164,15 @@ def shape_broadcast(shape1, shape2):
     for i in range(m):
         if i >= len(a):
             c_rev[i] = b_rev[i]
-        elif i>=len(b):
+        elif i >= len(b):
             c_rev[i] = a_rev[i]
         else:
-            c_rev[i] = max(a_rev[i],b_rev[i])
+            c_rev[i] = max(a_rev[i], b_rev[i])
             if a_rev[i] != c_rev[i] and a_rev[i] != 1:
                 raise IndexingError("Broadcast failure")
             if b_rev[i] != c_rev[i] and b_rev[i] != 1:
                 raise IndexingError("Broadcast failure")
     return tuple(reversed(c_rev))
-
-
 
     # shape1 = tuple(shape1)
     # shape2 = tuple(shape2)
