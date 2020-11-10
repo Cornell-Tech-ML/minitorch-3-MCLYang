@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit, prange
 from .tensor_data import (
     count,
     index_to_position,
@@ -7,8 +8,6 @@ from .tensor_data import (
     MAX_DIMS,
 )
 
-MAX_DIMS = 32
-from numba import njit, prange
 
 # This code will JIT compile fast versions your tensor_data functions.
 # If you get an error, read the docs for NUMBA as to what is allowed
