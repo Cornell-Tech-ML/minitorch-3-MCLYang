@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit, prange
 from .tensor_data import (
     count,
     index_to_position,
@@ -6,7 +7,6 @@ from .tensor_data import (
     shape_broadcast,
     MAX_DIMS,
 )
-from numba import njit, prange
 
 
 # This code will JIT compile fast versions your tensor_data functions.
@@ -36,10 +36,45 @@ def tensor_map(fn):
     Returns:
         None : Fills in `out`
     """
+    # fn = njit()(fn)
+    # def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
+
+    # lshape = list(out_shape)
+    # out_index = list(out_shape)
+    # for i in prange(len(out)):
+    #     count(i, lshape, out_index)
+
+    #     position_out = index_to_position(out_index, out_strides)
+    #     # ifbc = False
+    #     a_shape_tuple = tuple(in_shape)
+    #     b_shape_tuple = tuple(out_shape)
+    #     if a_shape_tuple != b_shape_tuple:
+
+    #         broadcast_shape = shape_broadcast(in_shape, out_shape)
+    #         assert tuple(broadcast_shape) == tuple(
+    #             out_shape
+    #         ), "Error: Broadcasting failed to match the output shape"
+    #         in_index = list(in_shape)
+    #         broadcast_index(out_index, broadcast_shape, in_shape, in_index)
+    #         position_in = index_to_position(in_index, in_strides)
+
+    #     else:
+    #         position_in = index_to_position(out_index, in_strides)
+
+    #     out[position_out] = fn(in_storage[position_in])
 
     def _map(out, out_shape, out_strides, in_storage, in_shape, in_strides):
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+        # out_index = np.zeros(MAX_DIMS,np.int32)
+        # in_index = np.zeros(MAX_DIMS,np.int32)
+
+        for i in prange(len(out)):
+            out_index = np.zeros(MAX_DIMS, np.int32)
+            in_index = np.zeros(MAX_DIMS, np.int32)
+            count(i, out_shape, out_index)
+            broadcast_index(out_index, out_shape, in_shape, in_index)
+            o = index_to_position(out_index, out_strides)
+            j = index_to_position(in_index, in_strides)
+            out[o] = fn(in_storage[j])
 
     return njit(parallel=True)(_map)
 
@@ -64,6 +99,7 @@ def map(fn):
 
     # This line JIT compiles your tensor_map
     f = tensor_map(njit()(fn))
+    # print(f.parallel_diagnostics(level=2))
 
     def ret(a, out=None):
         if out is None:
@@ -96,7 +132,7 @@ def tensor_zip(fn):
     Returns:
         None : Fills in `out`
     """
-
+    # fn = njit()(fn)
     def _zip(
         out,
         out_shape,
@@ -108,8 +144,18 @@ def tensor_zip(fn):
         b_shape,
         b_strides,
     ):
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+
+        for i in prange(len(out)):
+            out_index = np.zeros(MAX_DIMS, np.int32)
+            a_index = np.zeros(MAX_DIMS, np.int32)
+            b_index = np.zeros(MAX_DIMS, np.int32)
+            count(i, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+            broadcast_index(out_index, out_shape, a_shape, a_index)
+            j = index_to_position(a_index, a_strides)
+            broadcast_index(out_index, out_shape, b_shape, b_index)
+            k = index_to_position(b_index, b_strides)
+            out[o] = fn(a_storage[j], b_storage[k])
 
     return njit(parallel=True)(_zip)
 
@@ -159,7 +205,7 @@ def tensor_reduce(fn):
         None : Fills in `out`
 
     """
-
+    # fn = njit()(fn)
     def _reduce(
         out,
         out_shape,
@@ -170,8 +216,20 @@ def tensor_reduce(fn):
         reduce_shape,
         reduce_size,
     ):
-        # TODO: Implement for Task 3.1.
-        raise NotImplementedError('Need to implement for Task 3.1')
+
+        for i in prange(len(out)):
+            out_index = np.zeros(MAX_DIMS, np.int32)
+            count(i, out_shape, out_index)
+            o = index_to_position(out_index, out_strides)
+            for s in range(reduce_size):
+                a_index = np.zeros(MAX_DIMS, np.int32)
+                count(s, reduce_shape, a_index)
+                for n in range(len(reduce_shape)):
+                    if reduce_shape[n] != 1:
+                        out_index[n] = a_index[n]
+
+                j = index_to_position(out_index, a_strides)
+                out[o] = fn(out[o], a_storage[j])
 
     return njit(parallel=True)(_reduce)
 
@@ -266,9 +324,42 @@ def tensor_matrix_multiply(
     Returns:
         None : Fills in `out`
     """
+    # out,
+    # out_shape,
+    # out_strides,
+    # print("a")
+    # for mm in a_shape:
+    #     print(mm)
 
-    # TODO: Implement for Task 3.2.
-    raise NotImplementedError('Need to implement for Task 3.2')
+    # print("b")
+    # for mm in b_shape:
+    #     print(mm)
+    # print("a")
+    # print(len(out_shape))
+
+    iteration_n = a_shape[-1]
+
+    for i in prange(len(out)):
+        out_index = np.zeros(MAX_DIMS, np.int32)
+        count(i, out_shape, out_index)
+        o = index_to_position(out_index, out_strides)
+        a_index = np.copy(out_index)
+        b_index = np.zeros(MAX_DIMS, np.int32)
+        a_index[len(out_shape) - 1] = 0
+        b_index[len(out_shape) - 2] = 0
+        b_index[len(out_shape) - 1] = out_index[len(out_shape) - 1]
+        temp_sum = 0
+        for w in range(iteration_n):
+            # a_index = [d,a_row,w]
+            # b_index = [0,w,b_col]
+            a_index[len(out_shape) - 1] = w
+            b_index[len(out_shape) - 2] = w
+
+            j = index_to_position(a_index, a_strides)
+            m = index_to_position(b_index, b_strides)
+            temp_sum = temp_sum + a_storage[j] * b_storage[m]
+
+        out[o] = temp_sum
 
 
 def matrix_multiply(a, b):
